@@ -4,6 +4,7 @@ using Dapper.Infrastructure.DapperContext;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
@@ -43,21 +44,23 @@ namespace Dapper.Infrastructure.Repository
 
         public async Task<IReadOnlyList<Product>> GetAllAsync()
         {
-            var sql = "SELECT * FROM [TestDB].[dbo].[tbl_Student_Info]";
+           // var sql = "SELECT * FROM [TestDB].[dbo].[tbl_Student_Info]";
             using (var connection = _dbCon.CreateConnection())
             {              
-                var result = await connection.QueryAsync<Product>(sql);
+                var result = await connection.QueryAsync<Product>("sp_GetProduct",commandType:CommandType.StoredProcedure);
                 return result.ToList();
             }
         }
 
         public async Task<Product> GetByIdAsync(int id)
         {
-            var sql = "SELECT * FROM Products WHERE Id = @Id";
+            DynamicParameters _param = new DynamicParameters();
+            _param.Add("id", id,DbType.Int32);
+            //var sql = "SELECT * FROM Products WHERE Id = @Id";
             using (var connection = _dbCon.CreateConnection())
             {
   
-                var result = await connection.QuerySingleOrDefaultAsync<Product>(sql, new { Id = id });
+                var result = await connection.QuerySingleOrDefaultAsync<Product>("sp_GetProduct",_param, commandType:CommandType.StoredProcedure);
                 return result;
             }
         }
